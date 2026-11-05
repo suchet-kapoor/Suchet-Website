@@ -81,17 +81,32 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:2.4em 0}
 }
 .viz .ctrl button:hover{border-color:var(--c)}
 .viz .ctrl button:focus-visible{outline:2px solid var(--c);outline-offset:2px}
-.viz .ctrl button[aria-pressed="true"]{background:var(--c);color:#fff;border-color:var(--c)}
 
 .viz .plain{background:var(--bg);border:1px dashed var(--c);border-radius:10px;padding:8px 12px;font-size:.92rem;margin-top:12px}
 .viz .plain b{color:var(--c)}
 .viz .row{display:flex;align-items:center;gap:8px}
-.viz .bay{flex:1;display:flex;height:56px;border:2px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden;position:relative;transition:transform .6s ease-in,opacity .6s}
-.viz .bay.go{transform:translateX(120%);opacity:0}
-.viz .truck{font-size:2.2rem;transform:scaleX(-1)}
-.viz .it{height:100%;display:grid;place-items:center;font-size:1.7rem;border-right:2px solid var(--bg);background:color-mix(in srgb,var(--c) 22%,var(--bg));animation:viz-pop .3s}
-.viz .it.gap{background:repeating-linear-gradient(45deg,var(--line) 0 6px,transparent 6px 12px);font-size:.7rem;color:var(--warn);font-weight:700}
-@keyframes viz-pop{from{opacity:0;transform:translateY(-14px)}}
+.viz .fleet{flex:1;display:flex;height:60px;border:2px dashed var(--line);border-radius:10px;background:var(--bg);overflow:hidden;transition:transform .6s ease-in,opacity .6s}
+.viz .fleet.go{transform:translateX(120%);opacity:0}
+.viz .cell{
+  height:100%;display:grid;place-items:center;font-size:2rem;
+  animation:viz-hop .5s cubic-bezier(.25,1.2,.5,1) both;
+}
+.viz .cell .a{
+  display:inline-block;
+  animation:viz-bob var(--bdur,1.6s) ease-in-out var(--bd,0s) infinite;
+}
+.viz .fleet.go .cell .a{animation-duration:.28s;animation-delay:0s} /* frantic hopping while the convoy departs */
+.viz .cell.gap{font-size:.75rem;color:var(--warn);background:repeating-linear-gradient(45deg,transparent 0 6px,var(--line) 6px 9px)}
+@keyframes viz-hop{
+  0%{opacity:0;transform:translateY(38px) scale(1.25,.72)}
+  45%{opacity:1;transform:translateY(-10px) scale(.96,1.06)}
+  72%{transform:translateY(3px) scale(1.06,.94)}
+  100%{opacity:1;transform:translateY(0) scale(1,1)}
+}
+@keyframes viz-bob{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-12%) scale(.98,1.03)}
+}
 .viz .score{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
 .viz .chip{flex:1;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 10px;text-align:center;font-size:.82rem;color:var(--mut)}
 .viz .chip b{display:block;font-size:1.3rem;color:var(--fg);font-variant-numeric:tabular-nums}
@@ -115,7 +130,7 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:2.4em 0}
 .viz .win{height:1.6rem;text-align:center;font-weight:700;color:var(--ok);margin-top:6px}
 
 @media (prefers-reduced-motion:reduce){
-  .viz .bay,.viz .desk,.viz .chev,.viz .meter .bt i,.viz .ctrl button,.article-card,.theme-btn{animation:none;transition:none}
+  .viz .cell,.viz .cell .a,.viz .fleet,.viz .desk,.viz .chev,.viz .meter .bt i,.viz .ctrl button,.article-card,.theme-btn{animation:none;transition:none}
 }
 </style>
 </head>
@@ -176,33 +191,31 @@ The inital chip ran on roughly 1/10th of a watt (an Intel 386 needed close to 2 
 
   <!-- Interactive visual 1: how each architecture packs instructions -->
   <figure class="viz">
-    <figcaption class="caption"><b>Watch it:</b> both cards below run automatically. Use <b>Stop</b> to freeze, <b>Start</b> to (re)start, and <b>0.5×</b> for slow motion. Tap a card's title to collapse it.</figcaption>
+    <figcaption class="caption"><b>Watch it:</b> both convoys below run automatically — each animal hops into the row. Use <b>Pause</b> to freeze and <b>Play</b> to resume. Tap a card's title to collapse it.</figcaption>
 
-    <section class="pod arm open" data-a="armTruck">
-      <button class="head" aria-expanded="true"><span class="ico">📦</span><span class="tt"><span class="tag">ARM</span><span class="t">Identical boxes, packed perfectly</span><span class="s">Simple, equal-sized jobs: nothing is wasted</span></span><span class="chev">+</span></button>
+    <section class="pod arm open" data-a="armZoo">
+      <button class="head" aria-expanded="true"><span class="ico">🦘</span><span class="tt"><span class="tag">ARM</span><span class="t">The kangaroo convoy: perfect formation</span><span class="s">Identical hops, identical size, zero gaps</span></span><span class="chev">+</span></button>
       <div class="body"><div class="inner"><div class="in">
         <div class="ctrl">
-          <button type="button" data-act="start">▶ Start</button>
-          <button type="button" data-act="stop">⏸ Stop</button>
-          <button type="button" data-act="half" aria-pressed="false">🐢 0.5×</button>
+          <button type="button" data-act="start">▶ Play</button>
+          <button type="button" data-act="stop">⏸ Pause</button>
         </div>
-        <div class="row"><div class="bay"></div><div class="truck">🚚</div></div>
-        <div class="score"><div class="chip good">Empty space<b class="w">0%</b></div><div class="chip">Trucks delivered<b class="d">0</b></div></div>
-        <div class="plain"><b>In plain words:</b> ARM breaks work into small, same-sized pieces. Every truck leaves full, so more gets delivered with less effort.</div>
+        <div class="fleet"></div>
+        <div class="score"><div class="chip good">Empty space<b class="w">0%</b></div><div class="chip">Convoy shipped<b class="d">0</b></div></div>
+        <div class="plain"><b>In plain words:</b> ARM splits work into small, equal jobs — so every kangaroo lands in a ready slot. Full row → convoy departs → next one hops in. Nothing wasted.</div>
       </div></div></div>
     </section>
 
-    <section class="pod x86 open" data-a="x86Truck">
-      <button class="head" aria-expanded="true"><span class="ico">🛋️</span><span class="tt"><span class="tag">x86</span><span class="t">Odd-shaped items, awkward packing</span><span class="s">Big and small jobs mixed: gaps appear</span></span><span class="chev">+</span></button>
+    <section class="pod x86 open" data-a="x86Zoo">
+      <button class="head" aria-expanded="true"><span class="ico">🦒</span><span class="tt"><span class="tag">x86</span><span class="t">Same 8 seats, but the whole zoo shows up</span><span class="s">Mice, hippos and giraffes sharing one row</span></span><span class="chev">+</span></button>
       <div class="body"><div class="inner"><div class="in">
         <div class="ctrl">
-          <button type="button" data-act="start">▶ Start</button>
-          <button type="button" data-act="stop">⏸ Stop</button>
-          <button type="button" data-act="half" aria-pressed="false">🐢 0.5×</button>
+          <button type="button" data-act="start">▶ Play</button>
+          <button type="button" data-act="stop">⏸ Pause</button>
         </div>
-        <div class="row"><div class="bay"></div><div class="truck">🚚</div></div>
-        <div class="score"><div class="chip bad">Empty space<b class="w">0%</b></div><div class="chip">Trucks delivered<b class="d">0</b></div></div>
-        <div class="plain"><b>In plain words:</b> x86 handles instructions of many different sizes. It is powerful and flexible, but sorting and fitting them leaves empty room and takes more time.</div>
+        <div class="fleet"></div>
+        <div class="score"><div class="chip bad">Empty space<b class="w">0%</b></div><div class="chip">Convoy shipped<b class="d">0</b></div></div>
+        <div class="plain"><b>In plain words:</b> x86 accepts jobs of any shape — powerful and flexible. But a giraffe that straddles three seats leaves holes behind, and more convoys are needed for the same work.</div>
       </div></div></div>
     </section>
   </figure>
@@ -218,15 +231,14 @@ The inital chip ran on roughly 1/10th of a watt (an Intel 386 needed close to 2 
 
   <!-- Interactive visual 2: the single-threaded race -->
   <figure class="viz">
-    <figcaption class="caption"><b>Watch it:</b> the race runs automatically. <b>Start</b> re-runs it, <b>Stop</b> freezes it mid-race, and <b>0.5×</b> slows it down.</figcaption>
+    <figcaption class="caption"><b>Watch it:</b> the race runs automatically. <b>Pause</b> freezes it mid-race, <b>Play</b> resumes from that spot.</figcaption>
 
     <section class="pod x86 open" data-a="x86Race">
       <button class="head" aria-expanded="true"><span class="ico">🏎️</span><span class="tt"><span class="tag">x86</span><span class="t">One job, one lane: the fast car wins</span><span class="s">Great when a task cannot be split up</span></span><span class="chev">+</span></button>
       <div class="body"><div class="inner"><div class="in">
         <div class="ctrl">
-          <button type="button" data-act="start">▶ Start</button>
-          <button type="button" data-act="stop">⏸ Stop</button>
-          <button type="button" data-act="half" aria-pressed="false">🐢 0.5×</button>
+          <button type="button" data-act="start">▶ Play</button>
+          <button type="button" data-act="stop">⏸ Pause</button>
         </div>
         <div class="lbl">x86 sports car</div><div class="track"><span id="rx">🏎️</span><em>🏁</em></div>
         <div class="meter">⛽ Fuel used <div class="bt"><i id="fx" style="width:0"></i></div></div>
@@ -254,15 +266,14 @@ The inital chip ran on roughly 1/10th of a watt (an Intel 386 needed close to 2 
 
   <!-- Interactive visual 3: the ARM supermarket -->
   <figure class="viz">
-    <figcaption class="caption"><b>Watch it:</b> the supermarket runs automatically — every checkout desk serves a customer. <b>Stop</b> / <b>Start</b> / <b>0.5×</b> control it.</figcaption>
+    <figcaption class="caption"><b>Watch it:</b> the supermarket runs automatically — every checkout desk serves a customer. <b>Pause</b> / <b>Play</b> control it.</figcaption>
 
     <section class="pod arm open" data-a="armShop">
       <button class="head" aria-expanded="true"><span class="ico">🛒</span><span class="tt"><span class="tag">ARM</span><span class="t">Lots of small helpers, tiny power bill</span><span class="s">Great when thousands of people ask at once</span></span><span class="chev">+</span></button>
       <div class="body"><div class="inner"><div class="in">
         <div class="ctrl">
-          <button type="button" data-act="start">▶ Start</button>
-          <button type="button" data-act="stop">⏸ Stop</button>
-          <button type="button" data-act="half" aria-pressed="false">🐢 0.5×</button>
+          <button type="button" data-act="start">▶ Play</button>
+          <button type="button" data-act="stop">⏸ Pause</button>
         </div>
         <p class="queue">🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂 …waiting</p>
         <div class="desks"></div>
@@ -335,35 +346,59 @@ function Clock(){
   };
 }
 
-/* ---- Truck packing animation (ARM = uniform, x86 = mixed) ---- */
-function truck(clock,el,mixed){
-  var bay=$('.bay',el),W=$('.chip .w',el),D=$('.chip .d',el);
+/* ---- Animal convoy (uniform kangaroos vs a zoo of sizes) ---- */
+function zoo(clock,el,uniform){
+  var f=$('.fleet',el),W=$('.chip .w',el),D=$('.chip .d',el);
   var used=0,delivered=0,lost=0,total=0;
-  var items=[['📦',1],['🪑',2],['📺',2],['🛋️',3],['📦',1],['🧳',1]];
-  function reset(){bay.innerHTML='';bay.className='bay';used=0}
-  function add(ic,w,gap){
-    var d=document.createElement('div');d.className='it'+(gap?' gap':'');d.style.width=(w*12.5)+'%';d.textContent=gap?'empty':ic;bay.appendChild(d)}
+  var mixed=[['🐭',1],['🐢',1],['🐔',1],['🐰',2],['🐨',2],['🦒',3]];
+  function reset(){f.innerHTML='';f.className='fleet';used=0}
+  function add(ic,w){
+    var d=document.createElement('div');
+    d.className='cell'+(ic?'':' gap');
+    d.style.width=(w*12.5)+'%';
+    if(ic){
+      var s=document.createElement('span');
+      s.className='a';s.textContent=ic;
+      // every animal bobs to its own beat — the row stays alive
+      s.style.setProperty('--bd',(Math.floor(Math.random()*700))+'ms');
+      s.style.setProperty('--bdur',(1.1+Math.random()*1.1).toFixed(2)+'s');
+      d.appendChild(s);
+    }else{
+      d.textContent='🕳️';
+    }
+    f.appendChild(d);
+  }
   function ship(){
-    bay.classList.add('go');delivered++;D.textContent=delivered;
-    clock.set(function(){reset();tick()},800)}
+    f.classList.add('go');delivered++;D.textContent=delivered;
+    clock.set(function(){reset();tick()},800);
+  }
   function tick(){
-    if(!mixed){
-      if(used<8){add('📦',1);used++;total+=1;clock.set(tick,300)}
+    if(uniform){
+      if(used<8){add('🦘',1);used++;total+=1;W.textContent='0%';clock.set(tick,420)}
       else{W.textContent='0%';clock.set(ship,400)}
-      return}
-    var it=items[Math.floor(Math.random()*items.length)];
+      return;
+    }
+    var it=mixed[Math.floor(Math.random()*mixed.length)];
     if(used+it[1]>8){
-      var g=8-used;if(g>0){add('',g,true);lost+=g}
-      total+=8;W.textContent=Math.round(lost/total*100)+'%';clock.set(ship,500);return}
-    add(it[0],it[1]);used+=it[1];clock.set(tick,480+it[1]*160)}
+      var g=8-used;
+      if(g>0){add('',g);lost+=g}
+      total+=8;
+      W.textContent=Math.round(lost/total*100)+'%';
+      clock.set(ship,500);
+      return;
+    }
+    add(it[0],it[1]);
+    used+=it[1];
+    clock.set(tick,460+it[1]*190);
+  }
   tick();
   return function(){clock.clear();reset()};
 }
 
 /* ---- ANIMS: name -> animation factory (returns a stop/reset fn) ---- */
 var ANIMS={
-  armTruck:function(clock,el){return truck(clock,el,false)},
-  x86Truck:function(clock,el){return truck(clock,el,true)},
+  armZoo:function(clock,el){return zoo(clock,el,true)},
+  x86Zoo:function(clock,el){return zoo(clock,el,false)},
 
   armShop:function(clock,el){
     var g=$('.desks',el),n=$('.n',el),m=$('.meter .bt i',el),served=0,alive=true;
@@ -408,9 +443,9 @@ var ANIMS={
 /* ---- Wire up each card: controls + collapsible header ---- */
 var REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 document.querySelectorAll('.viz .pod').forEach(function(el){
-  var clock=Clock(),stopAnim=null,speed=1;
+  var clock=Clock(),stopAnim=null;
   var btn=$('.head',el);
-  var ctrl=$('.ctrl',el) , bStart=ctrl&&$('[data-act=start]',ctrl) , bStop=ctrl&&$('[data-act=stop]',ctrl) , bHalf=ctrl&&$('[data-act=half]',ctrl);
+  var ctrl=$('.ctrl',el) , bStart=ctrl&&$('[data-act=start]',ctrl) , bStop=ctrl&&$('[data-act=stop]',ctrl);
 
   function start(){
     if(stopAnim){stopAnim();stopAnim=null}
@@ -418,20 +453,13 @@ document.querySelectorAll('.viz .pod').forEach(function(el){
     stopAnim=ANIMS[el.dataset.a](clock,el);
   }
 
-  // Start: (re)start from the beginning and play
+  // Play: resume from wherever the animation froze (no restart)
   if(bStart)bStart.addEventListener('click',function(){
-    start();clock.speed(speed);clock.play();
+    clock.play();
     btn.setAttribute('aria-expanded','true');el.classList.add('open');
   });
-  // Stop: freeze the animation where it is (clock keeps state)
+  // Pause: freeze the animation where it is (clock keeps state)
   if(bStop)bStop.addEventListener('click',function(){clock.pause()});
-  // 0.5x: toggle slow motion
-  if(bHalf)bHalf.addEventListener('click',function(){
-    speed=(speed===1)?0.5:1;
-    clock.speed(speed);
-    bHalf.setAttribute('aria-pressed',speed===0.5?'true':'false');
-    bHalf.textContent=speed===0.5?'🐢 0.5× ✓':'🐢 0.5×';
-  });
 
   // Header: collapse / re-expand. Collapsing fully stops the card.
   btn.addEventListener('click',function(){
@@ -441,14 +469,13 @@ document.querySelectorAll('.viz .pod').forEach(function(el){
       clock.pause();
     }else{
       el.classList.add('open');btn.setAttribute('aria-expanded','true');
-      start();clock.speed(speed);clock.play();
+      start();clock.play();
     }
   });
 
   // Cards are open and running from page load.
   start();
-  clock.speed(speed);
-  if(REDUCED)clock.pause(); // respect reduced motion: open but frozen until user presses Start
+  if(REDUCED)clock.pause(); // respect reduced motion: open but frozen until user presses Play
 });
 })();
 </script>
