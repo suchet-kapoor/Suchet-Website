@@ -11,49 +11,44 @@
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
 h1{font-size:2rem;line-height:1.2;margin:8px 0 6px}
-.lead{color:var(--mut);margin:0 0 30px;max-width:60ch}
-.article-card{
-  display:block;
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:var(--card);
-  padding:18px 20px;
-  text-decoration:none;
-  color:inherit;
-  transition:transform .15s ease,border-color .15s ease;
-}
-.article-card:hover{transform:translateY(-2px);border-color:var(--arm)}
-.pills{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
-.pill{display:inline-block;color:#fff;font-weight:700;font-size:.68rem;padding:2px 9px;border-radius:99px}
-.pill.arm{background:var(--arm)}
-.pill.x86{background:var(--x86)}
-.article-card h2{font-size:1.15rem;margin:0 0 4px}
-.article-card p{color:var(--mut);font-size:.92rem;margin:0}
-.more{color:var(--arm);font-weight:600;font-size:.9rem}
+.lead{color:var(--mut);margin:0 0 14px;max-width:60ch}
+.posts h2{font-size:1.05rem;text-transform:none;color:var(--mut);font-weight:600;margin:0 0 4px}
+.post{padding:14px 0;border-top:1px solid var(--line)}
+.post:last-child{border-bottom:1px solid var(--line)}
+.post-title{margin:0;font-size:1.02rem;line-height:1.5}
+.post-title a{color:var(--fg);font-weight:600;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;transition:color .15s,text-decoration-color .15s}
+.post-title a:hover{color:var(--arm);text-decoration-color:var(--arm)}
+.cats{color:var(--mut);font-size:.92rem;font-weight:600;white-space:nowrap}
+.cats i{font-style:normal;color:var(--x86)}
+.cats i:nth-of-type(2n){color:var(--arm)}
+.post-meta{margin:3px 0 0;font-size:.92rem}
+.post-meta .sep{color:var(--mut);margin:0 8px;font-weight:400}
+.post-meta .when{color:var(--mut)}
+.more{color:var(--mut);font-weight:600;font-size:.9rem}
 </style>
 </head>
 <body>
 <header class="site-head">
   <a class="brand" href="./">Suchet's <em>Website</em></a>
   <nav>
-    <a href="./">Articles</a>
+    <a href="./">Blog</a>
+    <a href="about/">About</a>
     <button id="themeBtn" class="theme-btn" type="button">☀️ Light</button>
   </nav>
 </header>
 
 <main>
   <h1>Hello World! 👋</h1>
-  <p class="lead">Visual explainers on processors, systems and the cloud. Each article pairs the written story with interactive illustrations that run as you read.</p>
+  <p class="lead">Visual explainers on processors, systems and the cloud. Each post pairs the written story with interactive illustrations that run as you read.</p>
 
-  <a class="article-card" href="articles/arm-vs-x86/">
-    <div class="pills">
-      <span class="pill arm">ARM</span>
-      <span class="pill x86">x86</span>
+  <section class="posts">
+    <h2>Blog</h2>
+    <div class="post">
+      <p class="post-title"><a href="articles/arm-vs-x86/">ARM vs x64: How they work with Databases?</a>
+        <span class="cats">[<i>Engineering</i>, <i>Database</i>, <i>Hardware</i>]</span></p>
+      <p class="post-meta">Suchet Kapoor <span class="sep">|</span> <span class="when">November 2026</span></p>
     </div>
-    <h2>ARM vs x64: How they work with Databases?</h2>
-    <p>Trucks, supermarkets and race cars — a visual tour of when to pick each architecture. Interactive cards included.</p>
-    <span class="more">Read the article →</span>
-  </a>
+  </section>
 </main>
 
 <footer class="site-foot">
