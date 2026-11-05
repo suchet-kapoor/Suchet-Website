@@ -6,6 +6,8 @@
 <title>Suchet's Website</title>
 <meta name="description" content="Articles and visual explainers on systems, processors and cloud — by Suchet Kapoor.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>">
+<!-- Apply saved theme before first paint (default: dark) -->
+<script>try{if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
 <link rel="stylesheet" href="assets/css/site.css">
 <style>
 h1{font-size:2rem;line-height:1.2;margin:8px 0 6px}
@@ -35,19 +37,20 @@ h1{font-size:2rem;line-height:1.2;margin:8px 0 6px}
   <a class="brand" href="./">Suchet's <em>Website</em></a>
   <nav>
     <a href="./">Articles</a>
+    <button id="themeBtn" class="theme-btn" type="button">☀️ Light</button>
   </nav>
 </header>
 
 <main>
   <h1>Hello World! 👋</h1>
-  <p class="lead">Visual explainers on processors, systems and the cloud. Each article pairs the written story with interactive illustrations you can watch as you read.</p>
+  <p class="lead">Visual explainers on processors, systems and the cloud. Each article pairs the written story with interactive illustrations that run as you read.</p>
 
   <a class="article-card" href="articles/arm-vs-x86/">
     <div class="pills">
       <span class="pill arm">ARM</span>
       <span class="pill x86">x86</span>
     </div>
-    <h2>ARM vs x64: Which Processor Should You Choose?</h2>
+    <h2>ARM vs x64: How they work with Databases?</h2>
     <p>Trucks, supermarkets and race cars — a visual tour of when to pick each architecture. Interactive cards included.</p>
     <span class="more">Read the article →</span>
   </a>
@@ -57,5 +60,21 @@ h1{font-size:2rem;line-height:1.2;margin:8px 0 6px}
   <span>© 2026 Suchet Kapoor</span>
   <span>Built with plain HTML, CSS &amp; JS · No build step</span>
 </footer>
+
+<script>
+(function(){
+  var btn=document.getElementById('themeBtn'),root=document.documentElement;
+  function apply(t){
+    if(t==='light')root.setAttribute('data-theme','light');else root.removeAttribute('data-theme');
+    btn.textContent=t==='dark'?'☀️ Light':'🌙 Dark';
+    try{localStorage.setItem('theme',t)}catch(e){}
+  }
+  var saved='dark';try{saved=localStorage.getItem('theme')||'dark'}catch(e){}
+  apply(saved==='light'?'light':'dark');
+  btn.addEventListener('click',function(){
+    apply(root.getAttribute('data-theme')==='dark'?'light':'dark');
+  });
+})();
+</script>
 </body>
 </html>
