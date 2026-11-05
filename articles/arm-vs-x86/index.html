@@ -235,7 +235,7 @@ The inital chip ran on roughly 1/10th of a watt (an Intel 386 needed close to 2 
     <li><b>Less cooling required</b> = lower infrastructure costs</li>
     <li><b>Comparable or better throughput per dollar</b> = better total cost of ownership</li>
   </ul>
-  <p>ARM-based instances like AWS Graviton, Google Axion, and Microsoft Cobalt) 
+  <p>ARM-based instances like AWS Graviton, Google Axion, and Microsoft Cobalt
     deliver the same workload for less money and improved energy efficiency.</p>
 
   <!-- Interactive visual 3: the ARM supermarket -->
@@ -260,13 +260,23 @@ The inital chip ran on roughly 1/10th of a watt (an Intel 386 needed close to 2 
   </figure>
 
   <h3>Long-Running Tasks</h3>
-  <p>For long-duration tasks — batch processing, analytics workloads, API servers running continuously — ARM shines. Consider this example query:</p>
-  <pre><code>SELECT * FROM users WHERE id = 12345;</code></pre>
-  <p>On an ARM-based instance, this query runs approximately <b>0.2 milliseconds faster</b> than on the same-size x64 instance. That doesn't sound like much — but for a query running millions of times a day across thousands of instances, that adds up to hours of computation saved and significant cost reduction.</p>
+  <p>For long-duration tasks — batch processing, analytics workloads, API servers running continuously — ARM shines. The key: ARM does <b>not</b> make any single query faster (remember, x64 still wins the one-thread race). What it wins is the <i>total</i>: more queries per dollar, per watt. Consider this example query, an analytics report that scans an entire table:</p>
+  <pre><code>SELECT status, COUNT(*) FROM orders GROUP BY status;</code></pre>
+  <p>No single row matters here — what matters is how many rows the database can chew through per second. On an ARM instance with more cores for the same price, this kind of scan gets split across all of them in parallel. Run it millions of times a day across thousands of instances, and that adds up to hours of computation saved and significant cost reduction.</p>
   <p>More importantly, ARM's architecture favors <b>throughput-heavy workloads</b> where many cores work in parallel. Its design, with more cores available for the same price, handles high-concurrency server workloads exceptionally well.</p>
+ 
+  <hr class="rule">
 
-  <h3>Embedded and Mobile</h3>
-  <p>ARM.</p>
+  <h2>Course-Work</h2>
+  <p>Try to run and understand Latency  p50/p99/p95 how we can reduce it. 
+    See and check Throughput , CPU utilization percentage and  I/O wait.</p>
+  <ol>
+    <li><b>Can your work be split?</b> Whatever your workload is — one complex query or fifty thousand
+       tiny ones</li>
+    <li><b>What are you actually paying for?</b> When your database bill arrives, 
+      are you paying for <i>latency</i> (one query finishing fast) or <i>throughput</i>
+      </li>
+  </ol>
 
   <a class="back" href="../../">← Back to all articles</a>
 </article>
