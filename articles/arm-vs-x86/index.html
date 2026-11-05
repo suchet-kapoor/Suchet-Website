@@ -23,6 +23,13 @@ article p{margin:.85em 0}
 article code{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em}
 article pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;overflow-x:auto;font-size:.9rem;line-height:1.5}
 article pre code{background:none;border:none;padding:0}
+
+/* Instruction-set table image */
+article img.isa{
+  display:block;width:100%;height:auto;
+  background:#fff; /* the table is a light sheet — keep it readable in dark mode */
+  border:1px solid var(--line);border-radius:12px;
+}
 article ul{padding-left:1.25em}
 article li{margin:.4em 0}
 hr.rule{border:none;border-top:1px solid var(--line);margin:2.4em 0}
@@ -161,6 +168,12 @@ The inital chip ran on roughly 1/10th of a watt (an Intel 386 needed close to 2 
     set itself was tiny: just <b>45 instructions</b>, against the Intel 80286's <b>357</b>. A smaller set meant the
      chip's internal design stayed radically simple. And simple circuitry could execute every instruction in a <b>single clock cycle</b> —
      which unlocked pipelining, so one instruction finished every cycle, nonstop.</p>
+
+  <figure class="viz">
+    <figcaption class="caption"><b>See it:</b> the two recipe books, side by side — every instruction the chips could understand, with its clock-cycle cost. Intel 286: <b>357 total instructions</b>, some taking 22–34 cycles. ARM v1: <b>45 total instructions</b>, nearly all done in 1–2 cycles. That's the entire CISC vs RISC argument on one page.</figcaption>
+    <img class="isa" src="instructions-286-vs-arm.jpeg" alt="Side-by-side table comparing the full instruction sets: Intel 286 with 357 instructions (left, columns for instruction name, description, variations, clock cycles) and ARM v1 with just 45 instructions (right, all executing in 1–2 clock cycles)" loading="lazy">
+  </figure>
+
   <!-- Interactive visual 1: how each architecture packs instructions -->
   <figure class="viz">
     <figcaption class="caption"><b>Watch it:</b> both cards below run automatically. Use <b>Stop</b> to freeze, <b>Start</b> to (re)start, and <b>0.5×</b> for slow motion. Tap a card's title to collapse it.</figcaption>
