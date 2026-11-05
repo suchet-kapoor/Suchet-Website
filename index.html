@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suchet's Website</title>
+<meta name="description" content="Articles and visual explainers on systems, processors and cloud — by Suchet Kapoor.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>">
+<!-- Apply saved theme before first paint (default: dark) -->
+<script>try{if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
+<link rel="stylesheet" href="assets/css/site.css">
+<style>
+h1{font-size:2rem;line-height:1.2;margin:8px 0 6px}
+.lead{color:var(--mut);margin:0 0 14px;max-width:60ch}
+.posts h2{font-size:1.05rem;text-transform:none;color:var(--mut);font-weight:600;margin:0 0 4px}
+.post{padding:14px 0;border-top:1px solid var(--line)}
+.post:last-child{border-bottom:1px solid var(--line)}
+.post-title{margin:0;font-size:1.02rem;line-height:1.5}
+.post-title a{color:var(--fg);font-weight:600;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;transition:color .15s,text-decoration-color .15s}
+.post-title a:hover{color:var(--arm);text-decoration-color:var(--arm)}
+.cats{color:var(--mut);font-size:.92rem;font-weight:600;white-space:nowrap}
+.cats i{font-style:normal;color:var(--x86)}
+.cats i:nth-of-type(2n){color:var(--arm)}
+.post-meta{margin:3px 0 0;font-size:.92rem}
+.post-meta .sep{color:var(--mut);margin:0 8px;font-weight:400}
+.post-meta .when{color:var(--mut)}
+.more{color:var(--mut);font-weight:600;font-size:.9rem}
+</style>
+</head>
+<body>
+<header class="site-head">
+  <a class="brand" href="./">Suchet's <em>Website</em></a>
+  <nav>
+    <a href="./">Blog</a>
+    <a href="about/">About</a>
+    <button id="themeBtn" class="theme-btn" type="button">☀️ Light</button>
+  </nav>
+</header>
+
+<main>
+  <h1>Hello World! 👋</h1>
+  <p class="lead">Visual explainers on processors, systems and the cloud. Each post pairs the written story with interactive illustrations that run as you read.</p>
+
+  <section class="posts">
+    <h2>Blog</h2>
+    <div class="post">
+      <p class="post-title"><a href="articles/arm-vs-x86/">ARM vs x64: How they work with Databases?</a>
+        <span class="cats">[<i>Engineering</i>, <i>Database</i>, <i>Hardware</i>]</span></p>
+      <p class="post-meta">Suchet Kapoor <span class="sep">|</span> <span class="when">November 2026</span></p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <span>© 2026 Suchet Kapoor</span>
+  <span>Built with plain HTML, CSS &amp; JS · No build step</span>
+</footer>
+
+<script>
+(function(){
+  var btn=document.getElementById('themeBtn'),root=document.documentElement;
+  function apply(t){
+    if(t==='light')root.setAttribute('data-theme','light');else root.removeAttribute('data-theme');
+    btn.textContent=t==='dark'?'☀️ Light':'🌙 Dark';
+    try{localStorage.setItem('theme',t)}catch(e){}
+  }
+  var saved='dark';try{saved=localStorage.getItem('theme')||'dark'}catch(e){}
+  apply(saved==='light'?'light':'dark');
+  btn.addEventListener('click',function(){
+    apply(root.getAttribute('data-theme')==='dark'?'light':'dark');
+  });
+})();
+</script>
+</body>
+</html>

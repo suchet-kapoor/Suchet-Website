@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARM vs x64: How they work with Databases?</title>
+<meta name="description" content="ARM solved energy efficiency and memory utilization; x64 still wins single-threaded races. A visual explainer — with interactive cards between the sections.">
+<meta property="og:title" content="ARM vs x64: How they work with Databases">
+<meta property="og:description" content="From a 1965 chip shortage to AWS Graviton — a visual tour of ARM vs x86, with interactive illustrations.">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>">
+<!-- Apply saved theme before first paint (default: dark) -->
+<script>try{if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* ---- Article typography ---- */
+.kicker{color:var(--mut);font-size:.85rem;margin:4px 0 6px;text-transform:uppercase;letter-spacing:.08em}
+h1.article-title{font-size:1.9rem;line-height:1.25;margin:0 0 10px}
+.subtitle{color:var(--mut);font-size:1.02rem;margin:0 0 28px}
+article h2{font-size:1.35rem;margin:2.2em 0 .4em}
+article h3{font-size:1.08rem;margin:1.8em 0 .35em}
+article p{margin:.85em 0}
+article code{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em}
+article pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;overflow-x:auto;font-size:.9rem;line-height:1.5}
+article pre code{background:none;border:none;padding:0}
+
+/* Instruction-set table image */
+article img.isa{
+  display:block;width:100%;height:auto;
+  background:#fff; /* the table is a light sheet — keep it readable in dark mode */
+  border:1px solid var(--line);border-radius:12px;
+}
+article ul{padding-left:1.25em}
+article li{margin:.4em 0}
+hr.rule{border:none;border-top:1px solid var(--line);margin:2.4em 0}
+.back{display:inline-block;color:var(--mut);font-size:.9rem;text-decoration:none;margin-top:2.5em}
+.back:hover{color:var(--fg)}
+
+/* ---- Interactive visual blocks (cards run automatically, open from the start) ---- */
+.viz{
+  margin:1.6em 0 2em;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:var(--card);
+}
+.viz .caption{margin:0 2px 12px;color:var(--mut);font-size:.9rem}
+.viz .caption b{color:var(--fg)}
+.viz .pod{
+  border:1px solid var(--line);
+  border-top:5px solid var(--c);
+  border-radius:14px;
+  background:var(--bg);
+  overflow:hidden;
+}
+.viz .pod + .pod{margin-top:10px}
+.viz .pod.arm{--c:var(--arm)}
+.viz .pod.x86{--c:var(--x86)}
+.viz .head{all:unset;box-sizing:border-box;display:flex;width:100%;align-items:center;gap:14px;padding:14px 16px;cursor:pointer}
+.viz .head:focus-visible{outline:2px solid var(--c);outline-offset:-2px}
+.viz .ico{font-size:2.2rem;line-height:1}
+.viz .tt{flex:1}
+.viz .tag{display:inline-block;background:var(--c);color:#fff;font-weight:700;font-size:.7rem;padding:1px 8px;border-radius:99px;margin-bottom:2px}
+.viz .t{display:block;font-weight:700;font-size:1.05rem}
+.viz .s{display:block;color:var(--mut);font-size:.88rem}
+.viz .chev{font-size:1.4rem;color:var(--c);transition:transform .25s}
+.viz .pod.open .chev{transform:rotate(45deg)}
+.viz .body{display:grid;grid-template-rows:1fr}
+.viz .pod:not(.open) .body{grid-template-rows:0fr}
+.viz .inner{overflow:hidden;min-height:0}
+.viz .in{padding:4px 16px 16px}
+
+/* Per-card playback controls */
+.viz .ctrl{display:flex;gap:8px;justify-content:flex-end;margin:0 0 12px;flex-wrap:wrap}
+.viz .ctrl button{
+  all:unset;box-sizing:border-box;cursor:pointer;
+  font-size:.78rem;font-weight:600;color:var(--fg);
+  background:var(--card);border:1px solid var(--line);
+  border-radius:99px;padding:3px 12px;
+  transition:border-color .15s,background .15s,color .15s;
+}
+.viz .ctrl button:hover{border-color:var(--c)}
+.viz .ctrl button:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+
+.viz .plain{background:var(--bg);border:1px dashed var(--c);border-radius:10px;padding:8px 12px;font-size:.92rem;margin-top:12px}
+.viz .plain b{color:var(--c)}
+.viz .row{display:flex;align-items:center;gap:8px}
+.viz .fleet{flex:1;display:flex;height:60px;border:2px dashed var(--line);border-radius:10px;background:var(--bg);overflow:hidden;transition:transform .6s ease-in,opacity .6s}
+.viz .fleet.go{transform:translateX(120%);opacity:0}
+.viz .cell{
+  height:100%;display:grid;place-items:center;font-size:2rem;
+  animation:viz-hop .5s cubic-bezier(.25,1.2,.5,1) both;
+}
+.viz .cell .a{
+  display:inline-block;
+  animation:viz-bob var(--bdur,1.6s) ease-in-out var(--bd,0s) infinite;
+}
+.viz .fleet.go .cell .a{animation-duration:.28s;animation-delay:0s} /* frantic hopping while the convoy departs */
+.viz .cell.gap{font-size:.75rem;color:var(--warn);background:repeating-linear-gradient(45deg,transparent 0 6px,var(--line) 6px 9px)}
+@keyframes viz-hop{
+  0%{opacity:0;transform:translateY(38px) scale(1.25,.72)}
+  45%{opacity:1;transform:translateY(-10px) scale(.96,1.06)}
+  72%{transform:translateY(3px) scale(1.06,.94)}
+  100%{opacity:1;transform:translateY(0) scale(1,1)}
+}
+@keyframes viz-bob{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-12%) scale(.98,1.03)}
+}
+.viz .score{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.viz .chip{flex:1;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 10px;text-align:center;font-size:.82rem;color:var(--mut)}
+.viz .chip b{display:block;font-size:1.3rem;color:var(--fg);font-variant-numeric:tabular-nums}
+.viz .chip.bad b{color:var(--warn)}
+.viz .chip.good b{color:var(--ok)}
+.viz .desks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.viz .desk{background:var(--bg);border:2px solid var(--line);border-radius:10px;text-align:center;padding:6px 0 4px;transition:border-color .2s,transform .2s}
+.viz .desk.on{border-color:var(--c);transform:scale(1.05)}
+.viz .desk .p{font-size:1.6rem}
+.viz .desk .c{font-size:1.1rem;height:1.4rem}
+.viz .desk i{display:block;height:5px;margin:2px 8px 0;border-radius:9px;background:var(--line);overflow:hidden}
+.viz .desk i u{display:block;height:100%;width:0;background:var(--c);text-decoration:none}
+.viz .queue{margin:0 0 8px;font-size:1.2rem;letter-spacing:2px}
+.viz .meter{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.88rem}
+.viz .meter .bt{flex:1;height:16px;border:2px solid var(--fg);border-radius:5px;padding:1px;position:relative}
+.viz .meter .bt i{display:block;height:100%;border-radius:2px;transition:width .6s,background .3s}
+.viz .track{position:relative;height:46px;border-bottom:3px dashed var(--line);margin-top:6px}
+.viz .track span{position:absolute;bottom:0;font-size:2rem;left:0;line-height:1}
+.viz .track em{position:absolute;right:0;bottom:0;font-size:1.8rem;font-style:normal}
+.viz .lbl{font-size:.82rem;color:var(--mut);margin-top:8px}
+.viz .win{height:1.6rem;text-align:center;font-weight:700;color:var(--ok);margin-top:6px}
+
+@media (prefers-reduced-motion:reduce){
+  .viz .cell,.viz .cell .a,.viz .fleet,.viz .desk,.viz .chev,.viz .meter .bt i,.viz .ctrl button,.article-card,.theme-btn{animation:none;transition:none}
+}
+</style>
+</head>
+<body>
+<header class="site-head">
+  <a class="brand" href="../../">Suchet's <em>Website</em></a>
+  <nav>
+    <a href="../../">Blog</a>
+    <a href="../../about/">About</a>
+    <button id="themeBtn" class="theme-btn" type="button"></button>
+  </nav>
+</header>
+
+<main>
+<article>
+  <p class="kicker">Article · [Nov 2026] · IT Engineering · Database · Hardware</p>
+  <h1 class="article-title">ARM vs x64: How they work with Databases?</h1>
+  <p class="subtitle">In this post, we'll explore how ARM and x64 processors differ in their approach to handling database workloads.</p>
+
+  <h2>Introduction</h2>
+ <p>Back in the early 1980s, IBM was the personal PC giant and Intel was only name in the chip world.</p>
+<p>But there was another company, Acorn Computers — a small Cambridge firm that was having a blast selling its BBC Micro computer across Britain. But they had a major challenge. Their 6502 processor was aging, and there was no obvious successor... the reason, as usual as of today... not enough capable chips to build their future on.</p>
+<p>So 2 minds — a hardware engineer (Steve Furber) and a software engineer (Sophie Wilson) — 
+  joined hands and built the world's first commercial RISC processor —
+   and named it <b>ARM</b> (Acorn RISC Machine). </p>
+<p>The RISC idea(funny enough it was IBM research who pionered this first) was to drastically reduce the number of instructions, which would simplify the internal design of the CPU. How drastically?
+   The Intel 80286, a 16-bit chip, had a total of 357 unique instructions. The new RISC instruction
+    set that Sophie Wilson was creating would have only 45. </p>
+  </p>
+ Year's later the company went to launch an early competitor of IBM computers. creating end to end hardware and software for their new Personal PCs. ultimately killing it later.
+The inital chip ran on roughly 1/10th of a watt (an Intel 386 needed close to 2 watts) & can perform operation in small batches and at much greater speed.</p>
+<p>Today ARM powers Apple Silicon, over 99% of our mobile phones, and a large share of AWS EC2 instances run on AWS Graviton chips powered by 64-bit ARM processors.</p>
+  <hr class="rule">
+
+
+  <h2>The Architecture: CISC vs RISC</h2>
+  <p>Intel x86 will load instructions 1 by 1 and often leaves half of the processing capacity empty. 
+    ARM, on the other hand, will load the full instruction into memory, which makes it easy to fetch and execute instructions.</p>
+      <p> 
+    <p><b>CISC</b> was born into an era of expensive memory — in the late 1970s, 1 megabyte of RAM cost about
+       <b>$5,000</b>. So chips had every reason to pack as much work as possible into each instruction. 
+       Intel's 80286 carried <b>357 instructions</b>, some reaching deep into memory mid-operation. Powerful, yes —
+        but each complex instruction took multiple clock cycles to decode and execute, 
+      so the CPU often sat busy on one big instruction while fetching nothing.</p>
+  </p>
+
+  <p> <p><b>RISC</b> programs used more instructions — and more instructions meant more memory. 
+  So the initial design was done keeping in mind that memeory will not be expensive commodity and 
+  it will be much cheaper. The first ARM instruction
+    set itself was tiny: just <b>45 instructions</b>, against the Intel 80286's <b>357</b>. A smaller set meant the
+     chip's internal design stayed radically simple. And simple circuitry could execute every instruction in a <b>single clock cycle</b> —
+     which unlocked pipelining, so one instruction finished every cycle, nonstop.</p>
+
+  <figure class="viz">
+    <figcaption class="caption"><b>See it:</b> the two recipe books, side by side — every instruction the chips could understand, with its clock-cycle cost. Intel 286: <b>357 total instructions</b>, some taking 22–34 cycles. ARM v1: <b>45 total instructions</b>, nearly all done in 1–2 cycles. That's the entire CISC vs RISC argument on one page.</figcaption>
+    <img class="isa" src="instructions-286-vs-arm.jpeg" alt="Side-by-side table comparing the full instruction sets: Intel 286 with 357 instructions (left, columns for instruction name, description, variations, clock cycles) and ARM v1 with just 45 instructions (right, all executing in 1–2 clock cycles)" loading="lazy">
+  </figure>
+
+  <!-- Interactive visual 1: how each architecture packs instructions -->
+  <figure class="viz">
+    <figcaption class="caption"><b>Watch it:</b> both convoys below run automatically — each animal hops into the row. Use <b>Pause</b> to freeze and <b>Play</b> to resume. Tap a card's title to collapse it.</figcaption>
+
+    <section class="pod arm open" data-a="armZoo">
+      <button class="head" aria-expanded="true"><span class="ico">🦘</span><span class="tt"><span class="tag">ARM</span><span class="t">The kangaroo convoy: perfect formation</span><span class="s">Identical hops, identical size, zero gaps</span></span><span class="chev">+</span></button>
+      <div class="body"><div class="inner"><div class="in">
+        <div class="ctrl">
+          <button type="button" data-act="start">▶ Play</button>
+          <button type="button" data-act="stop">⏸ Pause</button>
+        </div>
+        <div class="fleet"></div>
+        <div class="score"><div class="chip good">Empty space<b class="w">0%</b></div><div class="chip">Convoy shipped<b class="d">0</b></div></div>
+        <div class="plain"><b>In plain words:</b> ARM splits work into small, equal jobs — so every kangaroo lands in a ready slot. Full row → convoy departs → next one hops in. Nothing wasted.</div>
+      </div></div></div>
+    </section>
+
+    <section class="pod x86 open" data-a="x86Zoo">
+      <button class="head" aria-expanded="true"><span class="ico">🦒</span><span class="tt"><span class="tag">x86</span><span class="t">Same 8 seats, but the whole zoo shows up</span><span class="s">Mice, hippos and giraffes sharing one row</span></span><span class="chev">+</span></button>
+      <div class="body"><div class="inner"><div class="in">
+        <div class="ctrl">
+          <button type="button" data-act="start">▶ Play</button>
+          <button type="button" data-act="stop">⏸ Pause</button>
+        </div>
+        <div class="fleet"></div>
+        <div class="score"><div class="chip bad">Empty space<b class="w">0%</b></div><div class="chip">Convoy shipped<b class="d">0</b></div></div>
+        <div class="plain"><b>In plain words:</b> x86 accepts jobs of any shape — powerful and flexible. But a giraffe that straddles three seats leaves holes behind, and more convoys are needed for the same work.</div>
+      </div></div></div>
+    </section>
+  </figure>
+
+  <hr class="rule">
+
+  <h2>When to Choose x64</h2>
+
+  <h3>Single-Threaded Workloads</h3>
+  <p><b>x64 is better when we need to run a  single long  threaded tasks or operate a query which is too complex</b>. For workloads that depend heavily on a single, fast core — gaming servers,
+     one-off database transactions, or high-frequency trading, and in some cases legacy applications are examples.</p>
+  <p>So, If your task is dominated by a single thread that isn't waiting on I/O, x64 will  outperform ARM despite ARM's energy efficiency.</p>
+
+  <!-- Interactive visual 2: the single-threaded race -->
+  <figure class="viz">
+    <figcaption class="caption"><b>Watch it:</b> the race runs automatically. <b>Pause</b> freezes it mid-race, <b>Play</b> resumes from that spot.</figcaption>
+
+    <section class="pod x86 open" data-a="x86Race">
+      <button class="head" aria-expanded="true"><span class="ico">🏎️</span><span class="tt"><span class="tag">x86</span><span class="t">One job, one lane: the fast car wins</span><span class="s">Great when a task cannot be split up</span></span><span class="chev">+</span></button>
+      <div class="body"><div class="inner"><div class="in">
+        <div class="ctrl">
+          <button type="button" data-act="start">▶ Play</button>
+          <button type="button" data-act="stop">⏸ Pause</button>
+        </div>
+        <div class="lbl">x86 sports car</div><div class="track"><span id="rx">🏎️</span><em>🏁</em></div>
+        <div class="meter">⛽ Fuel used <div class="bt"><i id="fx" style="width:0"></i></div></div>
+        <div class="lbl">ARM efficient car</div><div class="track"><span id="ra">🚗</span><em>🏁</em></div>
+        <div class="meter">⛽ Fuel used <div class="bt"><i id="fa" style="width:0"></i></div></div>
+        <div class="win"></div>
+        <div class="plain"><b>In plain words:</b> For a single task nobody can share, x86 is the quicker car, but it drinks more fuel. Think games, trading systems and older software.</div>
+      </div></div></div>
+    </section>
+  </figure>
+
+  <hr class="rule">
+
+  <h2>When to Choose ARM</h2>
+
+  <h3>Data Centers and Cloud</h3>
+  <p>ARM became wildly successful in data centers because <b>cost and energy matter more than anything else</b>:</p>
+  <ul>
+    <li><b>Lower power draw</b> = lower electricity bills</li>
+    <li><b>Less cooling required</b> = lower infrastructure costs</li>
+    <li><b>Comparable or better throughput per dollar</b> = better total cost of ownership</li>
+  </ul>
+  <p>ARM-based instances like AWS Graviton, Google Axion, and Microsoft Cobalt
+    deliver the same workload for less money and improved energy efficiency.</p>
+
+  <!-- Interactive visual 3: the ARM supermarket -->
+  <figure class="viz">
+    <figcaption class="caption"><b>Watch it:</b> the supermarket runs automatically — every checkout desk serves a customer. <b>Pause</b> / <b>Play</b> control it.</figcaption>
+
+    <section class="pod arm open" data-a="armShop">
+      <button class="head" aria-expanded="true"><span class="ico">🛒</span><span class="tt"><span class="tag">ARM</span><span class="t">Lots of small helpers, tiny power bill</span><span class="s">Great when thousands of people ask at once</span></span><span class="chev">+</span></button>
+      <div class="body"><div class="inner"><div class="in">
+        <div class="ctrl">
+          <button type="button" data-act="start">▶ Play</button>
+          <button type="button" data-act="stop">⏸ Pause</button>
+        </div>
+        <p class="queue">🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂 …waiting</p>
+        <div class="desks"></div>
+        <div class="score"><div class="chip good">Customers served<b class="n">0</b></div></div>
+        <div class="meter">💡 Energy used <div class="bt"><i style="width:0"></i></div> low</div>
+        <div class="plain"><b>In plain words:</b> Like a supermarket with many cheap checkout desks: everybody is served at the same time. That is why cloud companies love ARM for websites and apps.</div>
+      </div></div></div>
+    </section>
+  </figure>
+
+  <h3>Long-Running Tasks</h3>
+  <p>For long-duration tasks — batch processing, analytics workloads, API servers running continuously — ARM shines. The key: ARM does <b>not</b> make any single query faster (remember, x64 still wins the one-thread race). What it wins is the <i>total</i>: more queries per dollar, per watt. Consider this example query, an analytics report that scans an entire table:</p>
+  <pre><code>SELECT status, COUNT(*) FROM orders GROUP BY status;</code></pre>
+  <p>No single row matters here — what matters is how many rows the database can chew through per second. On an ARM instance with more cores for the same price, this kind of scan gets split across all of them in parallel. Run it millions of times a day across thousands of instances, and that adds up to hours of computation saved and significant cost reduction.</p>
+  <p>More importantly, ARM's architecture favors <b>throughput-heavy workloads</b> where many cores work in parallel. Its design, with more cores available for the same price, handles high-concurrency server workloads exceptionally well.</p>
+ 
+  <hr class="rule">
+
+  <h2>Course-Work</h2>
+  <p>Try to run and understand Latency  p50/p99/p95 how we can reduce it. 
+    See and check Throughput , CPU utilization percentage and  I/O wait.</p>
+  <ol>
+    <li><b>Can your work be split?</b> Whatever your workload is — one complex query or fifty thousand
+       tiny ones</li>
+    <li><b>What are you actually paying for?</b> When your database bill arrives, 
+      are you paying for <i>latency</i> (one query finishing fast) or <i>throughput</i>
+      </li>
+  </ol>
+
+  <a class="back" href="../../">← Back to the blog</a>
+</article>
+</main>
+
+<footer class="site-foot">
+  <span>© 2026 Suchet Kapoor</span>
+  <span><a href="../../">More posts</a></span>
+</footer>
+
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+
+/* ------------------------------------------------------------
+   Clock — one per card. All card animations schedule their
+   steps through this clock, so a single object controls
+   pause, (re)start and the 0.5x slow-motion multiplier.
+   ------------------------------------------------------------ */
+function Clock(){
+  var speed=1, paused=false, jobs=[], last=null;
+  function loop(now){
+    if(last===null)last=now;
+    var dt=now-last; last=now;
+    if(!paused && dt>0){
+      var adv=dt*speed, due=[];
+      jobs.forEach(function(j){j.remaining-=adv;if(j.remaining<=0)due.push(j)});
+      jobs=jobs.filter(function(j){return j.remaining>0});
+      due.forEach(function(j){j.fn()});
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+  return{
+    set:function(fn,ms){jobs.push({fn:fn,remaining:Math.max(0,ms)})},
+    clear:function(){jobs=[]},
+    pause:function(){paused=true},
+    play:function(){paused=false},
+    speed:function(s){speed=s},
+    isPaused:function(){return paused}
+  };
+}
+
+/* ---- Animal convoy (uniform kangaroos vs a zoo of sizes) ---- */
+function zoo(clock,el,uniform){
+  var f=$('.fleet',el),W=$('.chip .w',el),D=$('.chip .d',el);
+  var used=0,delivered=0,lost=0,total=0;
+  var mixed=[['🐭',1],['🐢',1],['🐔',1],['🐰',2],['🐨',2],['🦒',3]];
+  function reset(){f.innerHTML='';f.className='fleet';used=0}
+  function add(ic,w){
+    var d=document.createElement('div');
+    d.className='cell'+(ic?'':' gap');
+    d.style.width=(w*12.5)+'%';
+    if(ic){
+      var s=document.createElement('span');
+      s.className='a';s.textContent=ic;
+      // every animal bobs to its own beat — the row stays alive
+      s.style.setProperty('--bd',(Math.floor(Math.random()*700))+'ms');
+      s.style.setProperty('--bdur',(1.1+Math.random()*1.1).toFixed(2)+'s');
+      d.appendChild(s);
+    }else{
+      d.textContent='🕳️';
+    }
+    f.appendChild(d);
+  }
+  function ship(){
+    f.classList.add('go');delivered++;D.textContent=delivered;
+    clock.set(function(){reset();tick()},800);
+  }
+  function tick(){
+    if(uniform){
+      if(used<8){add('🦘',1);used++;total+=1;W.textContent='0%';clock.set(tick,420)}
+      else{W.textContent='0%';clock.set(ship,400)}
+      return;
+    }
+    var it=mixed[Math.floor(Math.random()*mixed.length)];
+    if(used+it[1]>8){
+      var g=8-used;
+      if(g>0){add('',g);lost+=g}
+      total+=8;
+      W.textContent=Math.round(lost/total*100)+'%';
+      clock.set(ship,500);
+      return;
+    }
+    add(it[0],it[1]);
+    used+=it[1];
+    clock.set(tick,460+it[1]*190);
+  }
+  tick();
+  return function(){clock.clear();reset()};
+}
+
+/* ---- ANIMS: name -> animation factory (returns a stop/reset fn) ---- */
+var ANIMS={
+  armZoo:function(clock,el){return zoo(clock,el,true)},
+  x86Zoo:function(clock,el){return zoo(clock,el,false)},
+
+  armShop:function(clock,el){
+    var g=$('.desks',el),n=$('.n',el),m=$('.meter .bt i',el),served=0,alive=true;
+    var cust=['🙂','😀','🧑','👩','👨','😎'];
+    for(var i=0;i<8;i++){g.insertAdjacentHTML('beforeend','<div class="desk"><div class="c"></div><div class="p">🧑‍💼</div><i><u></u></i></div>')}
+    m.style.width='28%';m.style.background='var(--ok)';
+    [].forEach.call(g.children,function(d){
+      var c=$('.c',d),u=$('u',d);
+      (function loop(){
+        var ms=700+Math.random()*900;
+        d.classList.add('on');c.textContent=cust[Math.floor(Math.random()*cust.length)]+'🛒';
+        u.style.transition='none';u.style.width='0';
+        clock.set(function(){u.style.transition='width '+ms+'ms linear';u.style.width='100%'},30);
+        clock.set(function(){
+          if(!alive)return;
+          served++;n.textContent=served;d.classList.remove('on');c.textContent='✅';clock.set(loop,200)
+        },30+ms);
+      })();
+    });
+    return function(){alive=false;clock.clear();g.innerHTML='';m.style.width='0'};
+  },
+
+  x86Race:function(clock,el){
+    var rx=$('#rx',el),ra=$('#ra',el),fx=$('#fx',el),fa=$('#fa',el),win=$('.win',el),t=0;
+    fx.style.background='var(--warn)';fa.style.background='var(--ok)';
+    function reset(){rx.style.left=ra.style.left='0';fx.style.width=fa.style.width='0';win.textContent=''}
+    function step(){
+      t+=16;
+      var px=Math.min(1,t/1500),pa=Math.min(1,t/2000);
+      rx.style.left='calc('+px*100+'% - '+px*2+'rem)';ra.style.left='calc('+pa*100+'% - '+pa*2+'rem)';
+      fx.style.width=px*85+'%';fa.style.width=pa*40+'%';
+      if(px>=1&&!win.textContent)win.textContent='🏆 x86 wins the race… but used more fuel';
+      if(t<3800)clock.set(step,16);
+      else{reset();clock.set(run,300)}
+    }
+    function run(){t=0;reset();step()}
+    run();
+    return function(){clock.clear();reset()};
+  }
+};
+
+/* ---- Wire up each card: controls + collapsible header ---- */
+var REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.querySelectorAll('.viz .pod').forEach(function(el){
+  var clock=Clock(),stopAnim=null;
+  var btn=$('.head',el);
+  var ctrl=$('.ctrl',el) , bStart=ctrl&&$('[data-act=start]',ctrl) , bStop=ctrl&&$('[data-act=stop]',ctrl);
+
+  function start(){
+    if(stopAnim){stopAnim();stopAnim=null}
+    clock.clear();
+    stopAnim=ANIMS[el.dataset.a](clock,el);
+  }
+
+  // Play: resume from wherever the animation froze (no restart)
+  if(bStart)bStart.addEventListener('click',function(){
+    clock.play();
+    btn.setAttribute('aria-expanded','true');el.classList.add('open');
+  });
+  // Pause: freeze the animation where it is (clock keeps state)
+  if(bStop)bStop.addEventListener('click',function(){clock.pause()});
+
+  // Header: collapse / re-expand. Collapsing fully stops the card.
+  btn.addEventListener('click',function(){
+    if(el.classList.contains('open')){
+      el.classList.remove('open');btn.setAttribute('aria-expanded','false');
+      if(stopAnim){stopAnim();stopAnim=null}
+      clock.pause();
+    }else{
+      el.classList.add('open');btn.setAttribute('aria-expanded','true');
+      start();clock.play();
+    }
+  });
+
+  // Cards are open and running from page load.
+  start();
+  if(REDUCED)clock.pause(); // respect reduced motion: open but frozen until user presses Play
+});
+})();
+</script>
+</body>
+</html>
