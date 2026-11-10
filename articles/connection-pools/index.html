@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connection Pools: How Big Your Pool Size Should Be?</title>
+<meta name="description" content="Ten thousand people hit your site at once — how many database connections do you actually need? The answer is smaller than you think.">
+<meta property="og:title" content="Connection Pools: How Big Your Pool Size Should Be?">
+<meta property="og:description" content="Opening a connection costs time. Closing one costs time too. But the right pool size is smaller than you think — here's the arithmetic.">
+<meta property="og:type" content="article">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>">
+<!-- Apply saved theme before first paint (default: dark) -->
+<script>try{if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
+<link rel="stylesheet" href="../../assets/css/site.css">
+<style>
+/* ---- Article typography ---- */
+.kicker{color:var(--mut);font-size:.85rem;margin:4px 0 6px;text-transform:uppercase;letter-spacing:.08em}
+h1.article-title{font-size:1.9rem;line-height:1.25;margin:0 0 10px}
+.subtitle{color:var(--mut);font-size:1.02rem;margin:0 0 28px}
+article h2{font-size:1.35rem;margin:2.2em 0 .4em}
+article h3{font-size:1.08rem;margin:1.8em 0 .35em}
+article p{margin:.85em 0}
+article code{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em}
+article pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;overflow-x:auto;font-size:.9rem;line-height:1.5}
+article pre code{background:none;border:none;padding:0}
+article ul{padding-left:1.25em}
+article li{margin:.4em 0}
+article img.ill{
+  display:block;width:100%;height:auto;
+  border:1px solid var(--line);border-radius:12px;
+}
+article figure{margin:1.6em 0 2em}
+article figcaption{margin:8px 2px 0;color:var(--mut);font-size:.9rem}
+article figcaption b{color:var(--fg)}
+hr.rule{border:none;border-top:1px solid var(--line);margin:2.4em 0}
+.back{display:inline-block;color:var(--mut);font-size:.9rem;text-decoration:none;margin-top:2.5em}
+.back:hover{color:var(--fg)}
+.sub-link{color:var(--mut);font-size:.9rem;text-decoration:none;border-bottom:1px dotted var(--line)}
+.sub-link:hover{color:var(--fg)}
+</style>
+</head>
+<body>
+<header class="site-head">
+  <a class="brand" href="../../">Suchet's <em>Website</em></a>
+  <nav>
+    <a href="../../">Blog</a>
+    <a href="../../about/">About</a>
+    <button id="themeBtn" class="theme-btn" type="button"></button>
+  </nav>
+</header>
+
+<main>
+<article>
+  <p class="kicker">Article · [Oct 2026] · Engineering · Database</p>
+  <h1 class="article-title">Connection Pools: How Big Your Pool Size Should Be?</h1>
+  <p class="subtitle">Opening a connection to Postgres costs time. Closing one costs time too. So you keep some open and hand them out as work arrives — the hard part is deciding <i>how many</i>. Originally published on <a class="sub-link" href="https://substack.com/home/post/p-220485797">Substack</a>.</p>
+
+  <h2>The Pool</h2>
+  <p>Opening a connection to Postgres costs time. Closing one costs time too. So instead of paying that on every request, you keep some connections open and hand them out as work arrives. That is a pool.</p>
+  <p>The hard part is deciding how many to keep. Ask ten engineers and you get ten numbers.</p>
+  <p>Ten thousand people hit your site in the same second and fire 15,000 to 20,000 queries between them. How many connections do you need? Ten thousand, one per person? A thousand? Ten?</p>
+  <p><b>The answer is smaller than you think.</b></p>
+
+  <figure>
+    <img class="ill" src="connection-pool-vs-no-pool.png" alt="Diagram comparing a database with a connection pool against a database without one — clients queue for a handful of pooled connections instead of each opening their own" loading="lazy">
+    <figcaption><b>With connection pool vs without connection pool.</b></figcaption>
+  </figure>
+
+  <h2>What a Connection Competes For</h2>
+  <p>Every connection you open grabs a slice of the machine: CPU time, disk access, network bandwidth and memory. So here's a rough first rule: <b>one connection per core</b>. Eight cores, eight connections. Add a ninth and the CPU has to juggle two connections on the same core — constantly switching between them wastes time, so both jobs finish <i>slower</i> than if you had just run them one after the other.</p>
+  <p>But that rule has a hole. It assumes every query keeps the CPU busy non-stop. In reality, most queries spend a surprising amount of time just <i>waiting</i> — and the biggest waiting room of all is the disk. That's where the "cores = connections" arithmetic breaks down.</p>
+
+  <h3>Why disk waiting changes everything</h3>
+  <p>Think of a spinning hard drive like an old record player: one needle, one spinning disc. The needle can only sit over one spot at a time. When your query asks for data, two physical movements happen:</p>
+  <ul>
+    <li><b>Seek time</b> — the needle physically travels over to the track where your data lives</li>
+    <li><b>Rotational latency</b> — the disc keeps spinning until the exact data you want passes under the needle</li>
+  </ul>
+  <p>Both are real, mechanical movement, measured in <b>milliseconds</b> — which is an eternity for a CPU. Caching in RAM shortens these waits, but it can never remove them, because eventually every query has to touch the disk.</p>
+  <p>Now here's the important part: while a query sits there waiting for the disk, its thread is doing <b>absolutely nothing</b>. It isn't calculating, it isn't using the CPU. The CPU is just sitting there, free.</p>
+  <p><b>That is the whole trick.</b> You can run <b>more connections than you have cores</b> — as long as some of them are stuck waiting on the disk. The waiting ones burn zero CPU while the others do real work. Waiting ≠ working.</p>
+
+  <h3>SSD vs HDD: the part everyone gets backwards</h3>
+  <p>How many extra connections you can get away with depends on how long your queries block. And that depends almost entirely on what kind of disk you have:</p>
+  <ul>
+    <li><b>Spinning HDD:</b> queries block for milliseconds on every read → lots of idle time → you can afford <i>more</i> connections than cores</li>
+    <li><b>SSD:</b> no needle, no spinning platter — reads come back in microseconds → queries barely block at all → connections stay busy → you need <i>fewer</i>, closer to your core count</li>
+  </ul>
+  <p>Plenty of people get this exactly backwards: they upgrade to an SSD and then <i>add</i> connections. It's the reverse — <b>less blocking means fewer connections.</b></p>
+
+  <h3>Network: the forgotten third</h3>
+  <p>Network waits work the same way. If your app pushes data faster than the ethernet card can send it out, the card stalls once its send buffers fill up — and the connection is, again, just standing there waiting. A 10-gigabit link stalls far less than a gigabit link; gigabit stalls far less than 100-megabit.</p>
+  <p>But here's the thing: compared to disk waits, network waits are tiny. That's why most pool-sizing formulas don't even bother counting the network — disk dominates the calculation.</p>
+
+  <h2>The Formula</h2>
+  <pre><code>connections = ((core_count * 2) + effective_spindle_count)
+
+effective_spindle_count counts the disks a query can hit at once,
+and on an SSD with no spindle HikariCP counts it as 1.
+
+Four cores and one disk gives 9, which rounds to 10.</code></pre>
+  <p>A 4-core i7 with a single disk will serve 3,000 users running simple queries at 6,000 transactions per second.</p>
+
+  <h2>The Benchmarks Agree</h2>
+  <p>A <a href="https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing">PostgreSQL benchmark</a> shows throughput flattening once the pool passes roughly 50 connections, and Oracle demonstrated the same curve by cutting a pool from 2,048 down to 96. Push the pool much past 10 on a 4-core box and response times climb while throughput falls, because every extra connection is another process competing for the same cores.</p>
+
+  <h2>When You Need More: PgBouncer</h2>
+  <p>In another case, we have something called <b>PgBouncer</b> — or <b>PGCat</b> in the Go language — which is excellent when we have to run multiple Pods from Kubernetes and need to have multiple database connections and scale them vertically.</p>
+
+  <a class="back" href="../../">← Back to the blog</a>
+</article>
+</main>
+
+<footer class="site-foot">
+  <span>© 2026 Suchet Kapoor</span>
+  <span><a href="../../">More posts</a></span>
+</footer>
+
+<script>
+(function(){
+  var btn=document.getElementById('themeBtn'),root=document.documentElement;
+  function apply(t){
+    if(t==='light')root.setAttribute('data-theme','light');else root.removeAttribute('data-theme');
+    btn.textContent=t==='dark'?'☀️ Light':'🌙 Dark';
+    try{localStorage.setItem('theme',t)}catch(e){}
+  }
+  var saved='dark';try{saved=localStorage.getItem('theme')||'dark'}catch(e){}
+  apply(saved==='light'?'light':'dark');
+  btn.addEventListener('click',function(){
+    apply(root.getAttribute('data-theme')==='dark'?'light':'dark');
+  });
+})();
+</script>
+</body>
+</html>
