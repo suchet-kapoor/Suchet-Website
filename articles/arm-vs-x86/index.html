@@ -3,39 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ARM vs x64: How they work with Databases?</title>
-<meta name="description" content="ARM solved energy efficiency and memory utilization; x64 still wins single-threaded races. A visual explainer — with interactive cards between the sections.">
-<meta property="og:title" content="ARM vs x64: How they work with Databases">
+<title>ARM vs x64: How they work with Databases? — Suchet Kapoor</title>
+<meta name="description" content="ARM solved energy efficiency and memory utilisation; x64 still wins single-threaded races. A visual explainer with interactive cards between the sections.">
+<meta property="og:title" content="ARM vs x64: How they work with Databases?">
 <meta property="og:description" content="From a 1965 chip shortage to AWS Graviton — a visual tour of ARM vs x86, with interactive illustrations.">
 <meta property="og:type" content="article">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>">
+<meta property="og:site_name" content="Suchet Kapoor">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0a0d12" id="theme-color">
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
 <!-- Apply saved theme before first paint (default: dark) -->
 <script>try{if(localStorage.getItem('theme')==='light')document.documentElement.setAttribute('data-theme','light')}catch(e){}</script>
 <link rel="stylesheet" href="../../assets/css/site.css">
+<script src="../../assets/js/site.js" defer></script>
 <style>
-/* ---- Article typography ---- */
-.kicker{color:var(--mut);font-size:.85rem;margin:4px 0 6px;text-transform:uppercase;letter-spacing:.08em}
-h1.article-title{font-size:1.9rem;line-height:1.25;margin:0 0 10px}
-.subtitle{color:var(--mut);font-size:1.02rem;margin:0 0 28px}
-article h2{font-size:1.35rem;margin:2.2em 0 .4em}
-article h3{font-size:1.08rem;margin:1.8em 0 .35em}
-article p{margin:.85em 0}
-article code{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em}
-article pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;overflow-x:auto;font-size:.9rem;line-height:1.5}
-article pre code{background:none;border:none;padding:0}
-
-/* Instruction-set table image */
-article img.isa{
-  display:block;width:100%;height:auto;
-  background:#fff; /* the table is a light sheet — keep it readable in dark mode */
-  border:1px solid var(--line);border-radius:12px;
-}
-article ul{padding-left:1.25em}
-article li{margin:.4em 0}
-hr.rule{border:none;border-top:1px solid var(--line);margin:2.4em 0}
-.back{display:inline-block;color:var(--mut);font-size:.9rem;text-decoration:none;margin-top:2.5em}
-.back:hover{color:var(--fg)}
-
 /* ---- Interactive visual blocks (cards run automatically, open from the start) ---- */
 .viz{
   margin:1.6em 0 2em;
@@ -60,7 +41,7 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:2.4em 0}
 .viz .head:focus-visible{outline:2px solid var(--c);outline-offset:-2px}
 .viz .ico{font-size:2.2rem;line-height:1}
 .viz .tt{flex:1}
-.viz .tag{display:inline-block;background:var(--c);color:#fff;font-weight:700;font-size:.7rem;padding:1px 8px;border-radius:99px;margin-bottom:2px}
+.viz .tag{display:inline-block;background:var(--c);color:var(--on-accent);font-weight:700;font-size:.7rem;padding:1px 8px;border-radius:99px;margin-bottom:2px}
 .viz .t{display:block;font-weight:700;font-size:1.05rem}
 .viz .s{display:block;color:var(--mut);font-size:.88rem}
 .viz .chev{font-size:1.4rem;color:var(--c);transition:transform .25s}
@@ -130,186 +111,249 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:2.4em 0}
 .viz .win{height:1.6rem;text-align:center;font-weight:700;color:var(--ok);margin-top:6px}
 
 @media (prefers-reduced-motion:reduce){
-  .viz .cell,.viz .cell .a,.viz .fleet,.viz .desk,.viz .chev,.viz .meter .bt i,.viz .ctrl button,.article-card,.theme-btn{animation:none;transition:none}
+  .viz .cell,.viz .cell .a,.viz .fleet,.viz .desk,.viz .chev,.viz .meter .bt i,.viz .ctrl button{animation:none;transition:none}
 }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="read-progress" aria-hidden="true"><span id="readBar"></span></div>
+
 <header class="site-head">
-  <a class="brand" href="../../">Suchet's <em>Website</em></a>
-  <nav>
-    <a href="../../">Blog</a>
-    <a href="../../about/">About</a>
-    <button id="themeBtn" class="theme-btn" type="button"></button>
-  </nav>
+  <div class="head-in">
+    <a class="brand" href="../../">
+      <span class="brand-mark" aria-hidden="true">SK</span>
+      <span class="brand-text">Suchet <span class="brand-surname">Kapoor</span><small>Backend &amp; systems</small></span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="../../#writing" aria-current="page">Writing</a>
+      <a href="../../about/">About</a>
+      <button class="theme-btn" type="button" data-theme-toggle aria-label="Switch to light theme" title="Switch to light theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      </button>
+    </nav>
+  </div>
 </header>
 
-<main>
-<article>
-  <p class="kicker">Article · [Nov 2026] · IT Engineering · Database · Hardware</p>
-  <h1 class="article-title">ARM vs x64: How they work with Databases?</h1>
-  <p class="subtitle">In this post, we'll explore how ARM and x64 processors differ in their approach to handling database workloads.</p>
+<main class="article-main" id="main">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="../../">Home</a>
+    <span aria-hidden="true">/</span>
+    <a href="../../#writing">Writing</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">ARM vs x64</span>
+  </nav>
 
-  <h2>Introduction</h2>
- <p>Back in the early 1980s, IBM was the personal PC giant and Intel was only name in the chip world.</p>
-<p>But there was another company, Acorn Computers — a small Cambridge firm that was having a blast selling its BBC Micro computer across Britain. But they had a major challenge. Their 6502 processor was aging, and there was no obvious successor... the reason, as usual as of today... not enough capable chips to build their future on.</p>
-<p>So 2 minds — a hardware engineer (Steve Furber) and a software engineer (Sophie Wilson) — 
-  joined hands and built the world's first commercial RISC processor —
-   and named it <b>ARM</b> (Acorn RISC Machine). </p>
-<p>The RISC idea(funny enough it was IBM research who pionered this first) was to drastically reduce the number of instructions, which would simplify the internal design of the CPU. How drastically?
-   The Intel 80286, a 16-bit chip, had a total of 357 unique instructions. The new RISC instruction
-    set that Sophie Wilson was creating would have only 45. </p>
-  </p>
- Year's later the company went to launch an early competitor of IBM computers. creating end to end hardware and software for their new Personal PCs. ultimately killing it later.
-The inital chip ran on roughly 1/10th of a watt (an Intel 386 needed close to 2 watts) & can perform operation in small batches and at much greater speed.</p>
-<p>Today ARM powers Apple Silicon, over 99% of our mobile phones, and a large share of AWS EC2 instances run on AWS Graviton chips powered by 64-bit ARM processors.</p>
-  <hr class="rule">
+  <div class="article-wrap">
+    <div class="article-col">
+      <article class="prose">
 
+        <header class="article-head">
+          <p class="kicker">Article · Nov 2026 · Hardware · Database</p>
+          <h1 class="article-title">ARM vs x64: How they work with Databases?</h1>
+          <p class="subtitle">In this post, we'll explore how ARM and x64 processors differ in their approach to handling database workloads.</p>
+          <div class="article-meta">
+            <img class="avatar" src="../../assets/img/suchet-avatar.webp" alt="" width="200" height="200" decoding="async">
+            <div class="byline">
+              <b>Suchet Kapoor</b>
+              <span><time datetime="2026-11">November 2026</time> · <span data-readtime>6 min read</span></span>
+            </div>
+            <button class="copy-link" type="button" data-copy-link>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg>
+              <span>Copy link</span>
+            </button>
+          </div>
+        </header>
 
-  <h2>The Architecture: CISC vs RISC</h2>
-  <p>Intel x86 will load instructions 1 by 1 and often leaves half of the processing capacity empty. 
-    ARM, on the other hand, will load the full instruction into memory, which makes it easy to fetch and execute instructions.</p>
-      <p> 
-    <p><b>CISC</b> was born into an era of expensive memory — in the late 1970s, 1 megabyte of RAM cost about
-       <b>$5,000</b>. So chips had every reason to pack as much work as possible into each instruction. 
-       Intel's 80286 carried <b>357 instructions</b>, some reaching deep into memory mid-operation. Powerful, yes —
-        but each complex instruction took multiple clock cycles to decode and execute, 
-      so the CPU often sat busy on one big instruction while fetching nothing.</p>
-  </p>
+        <h2>Introduction</h2>
+        <p>Back in the early 1980s, IBM was the personal PC giant and Intel was the only name in the chip world.</p>
+        <p>But there was another company, Acorn Computers — a small Cambridge firm that was having a blast selling its BBC Micro computer across Britain. But they had a major challenge. Their 6502 processor was aging, and there was no obvious successor — the reason, as usual, was not enough capable chips to build their future on.</p>
+        <p>So two minds — a hardware engineer (Steve Furber) and a software engineer (Sophie Wilson) — joined hands and built the world's first commercial RISC processor — and named it <b>ARM</b> (Acorn RISC Machine).</p>
+        <p>The RISC idea (funny enough, it was IBM research who pioneered this first) was to drastically reduce the number of instructions, which would simplify the internal design of the CPU. How drastically? The Intel 80286, a 16-bit chip, had a total of 357 unique instructions. The new RISC instruction set that Sophie Wilson was creating would have only 45.</p>
+        <p>Years later the company launched an early competitor to IBM computers, creating end-to-end hardware and software for their new personal PCs — ultimately killing it later. The initial chip ran on roughly 1/10th of a watt (an Intel 386 needed close to 2 watts) and could perform operations in small batches at much greater speed.</p>
+        <p>Today ARM powers Apple Silicon, over 99% of our mobile phones, and a large share of AWS EC2 instances run on AWS Graviton chips powered by 64-bit ARM processors.</p>
 
-  <p> <p><b>RISC</b> programs used more instructions — and more instructions meant more memory. 
-  So the initial design was done keeping in mind that memeory will not be expensive commodity and 
-  it will be much cheaper. The first ARM instruction
-    set itself was tiny: just <b>45 instructions</b>, against the Intel 80286's <b>357</b>. A smaller set meant the
-     chip's internal design stayed radically simple. And simple circuitry could execute every instruction in a <b>single clock cycle</b> —
-     which unlocked pipelining, so one instruction finished every cycle, nonstop.</p>
+        <hr class="rule">
 
-  <figure class="viz">
-    <figcaption class="caption"><b>See it:</b> the two recipe books, side by side — every instruction the chips could understand, with its clock-cycle cost. Intel 286: <b>357 total instructions</b>, some taking 22–34 cycles. ARM v1: <b>45 total instructions</b>, nearly all done in 1–2 cycles. That's the entire CISC vs RISC argument on one page.</figcaption>
-    <img class="isa" src="instructions-286-vs-arm.jpeg" alt="Side-by-side table comparing the full instruction sets: Intel 286 with 357 instructions (left, columns for instruction name, description, variations, clock cycles) and ARM v1 with just 45 instructions (right, all executing in 1–2 clock cycles)" loading="lazy">
-  </figure>
+        <h2>The Architecture: CISC vs RISC</h2>
+        <p>Intel x86 will load instructions one by one and often leaves half of the processing capacity empty. ARM, on the other hand, will load the full instruction into memory, which makes it easy to fetch and execute instructions.</p>
+        <p><b>CISC</b> was born into an era of expensive memory — in the late 1970s, 1 megabyte of RAM cost about <b>$5,000</b>. So chips had every reason to pack as much work as possible into each instruction. Intel's 80286 carried <b>357 instructions</b>, some reaching deep into memory mid-operation. Powerful, yes — but each complex instruction took multiple clock cycles to decode and execute, so the CPU often sat busy on one big instruction while fetching nothing.</p>
+        <p><b>RISC</b> programs used more instructions — and more instructions meant more memory. So the initial design was done keeping in mind that memory would not be an expensive commodity and would be much cheaper. The first ARM instruction set itself was tiny: just <b>45 instructions</b>, against the Intel 80286's <b>357</b>. A smaller set meant the chip's internal design stayed radically simple. And simple circuitry could execute every instruction in a <b>single clock cycle</b> — which unlocked pipelining, so one instruction finished every cycle, nonstop.</p>
 
-  <!-- Interactive visual 1: how each architecture packs instructions -->
-  <figure class="viz">
-    <figcaption class="caption"><b>Watch it:</b> both convoys below run automatically — each animal hops into the row. Use <b>Pause</b> to freeze and <b>Play</b> to resume. Tap a card's title to collapse it.</figcaption>
+        <figure class="viz">
+          <figcaption class="caption"><b>See it:</b> the two recipe books, side by side — every instruction the chips could understand, with its clock-cycle cost. Intel 286: <b>357 total instructions</b>, some taking 22–34 cycles. ARM v1: <b>45 total instructions</b>, nearly all done in 1–2 cycles. That's the entire CISC vs RISC argument on one page.</figcaption>
+          <img class="isa" src="instructions-286-vs-arm.jpeg" width="768" height="1074" alt="Side-by-side table comparing the full instruction sets: Intel 286 with 357 instructions (left, columns for instruction name, description, variations, clock cycles) and ARM v1 with just 45 instructions (right, all executing in 1–2 clock cycles)" loading="lazy">
+        </figure>
 
-    <section class="pod arm open" data-a="armZoo">
-      <button class="head" aria-expanded="true"><span class="ico">🦘</span><span class="tt"><span class="tag">ARM</span><span class="t">The kangaroo convoy: perfect formation</span><span class="s">Identical hops, identical size, zero gaps</span></span><span class="chev">+</span></button>
-      <div class="body"><div class="inner"><div class="in">
-        <div class="ctrl">
-          <button type="button" data-act="start">▶ Play</button>
-          <button type="button" data-act="stop">⏸ Pause</button>
+        <!-- Interactive visual 1: how each architecture packs instructions -->
+        <figure class="viz">
+          <figcaption class="caption"><b>Watch it:</b> both convoys below run automatically — each animal hops into the row. Use <b>Pause</b> to freeze and <b>Play</b> to resume. Tap a card's title to collapse it.</figcaption>
+
+          <section class="pod arm open" data-a="armZoo">
+            <button class="head" aria-expanded="true"><span class="ico">🦘</span><span class="tt"><span class="tag">ARM</span><span class="t">The kangaroo convoy: perfect formation</span><span class="s">Identical hops, identical size, zero gaps</span></span><span class="chev">+</span></button>
+            <div class="body"><div class="inner"><div class="in">
+              <div class="ctrl">
+                <button type="button" data-act="start">▶ Play</button>
+                <button type="button" data-act="stop">⏸ Pause</button>
+              </div>
+              <div class="fleet"></div>
+              <div class="score"><div class="chip good">Empty space<b class="w">0%</b></div><div class="chip">Convoy shipped<b class="d">0</b></div></div>
+              <div class="plain"><b>In plain words:</b> ARM splits work into small, equal jobs — so every kangaroo lands in a ready slot. Full row → convoy departs → next one hops in. Nothing wasted.</div>
+            </div></div></div>
+          </section>
+
+          <section class="pod x86 open" data-a="x86Zoo">
+            <button class="head" aria-expanded="true"><span class="ico">🦒</span><span class="tt"><span class="tag">x86</span><span class="t">Same 8 seats, but the whole zoo shows up</span><span class="s">Mice, hippos and giraffes sharing one row</span></span><span class="chev">+</span></button>
+            <div class="body"><div class="inner"><div class="in">
+              <div class="ctrl">
+                <button type="button" data-act="start">▶ Play</button>
+                <button type="button" data-act="stop">⏸ Pause</button>
+              </div>
+              <div class="fleet"></div>
+              <div class="score"><div class="chip bad">Empty space<b class="w">0%</b></div><div class="chip">Convoy shipped<b class="d">0</b></div></div>
+              <div class="plain"><b>In plain words:</b> x86 accepts jobs of any shape — powerful and flexible. But a giraffe that straddles three seats leaves holes behind, and more convoys are needed for the same work.</div>
+            </div></div></div>
+          </section>
+        </figure>
+
+        <hr class="rule">
+
+        <h2>When to Choose x64</h2>
+
+        <h3>Single-Threaded Workloads</h3>
+        <p><b>x64 is better when we need to run a single long-threaded task or operate a query which is too complex</b>. Workloads that depend heavily on a single, fast core — gaming servers, one-off database transactions, high-frequency trading, and in some cases legacy applications — are the usual examples.</p>
+        <p>So, if your task is dominated by a single thread that isn't waiting on I/O, x64 will outperform ARM despite ARM's energy efficiency.</p>
+
+        <!-- Interactive visual 2: the single-threaded race -->
+        <figure class="viz">
+          <figcaption class="caption"><b>Watch it:</b> the race runs automatically. <b>Pause</b> freezes it mid-race, <b>Play</b> resumes from that spot.</figcaption>
+
+          <section class="pod x86 open" data-a="x86Race">
+            <button class="head" aria-expanded="true"><span class="ico">🏎️</span><span class="tt"><span class="tag">x86</span><span class="t">One job, one lane: the fast car wins</span><span class="s">Great when a task cannot be split up</span></span><span class="chev">+</span></button>
+            <div class="body"><div class="inner"><div class="in">
+              <div class="ctrl">
+                <button type="button" data-act="start">▶ Play</button>
+                <button type="button" data-act="stop">⏸ Pause</button>
+              </div>
+              <div class="lbl">x86 sports car</div><div class="track"><span id="rx">🏎️</span><em>🏁</em></div>
+              <div class="meter">⛽ Fuel used <div class="bt"><i id="fx" style="width:0"></i></div></div>
+              <div class="lbl">ARM efficient car</div><div class="track"><span id="ra">🚗</span><em>🏁</em></div>
+              <div class="meter">⛽ Fuel used <div class="bt"><i id="fa" style="width:0"></i></div></div>
+              <div class="win"></div>
+              <div class="plain"><b>In plain words:</b> For a single task nobody can share, x86 is the quicker car, but it drinks more fuel. Think games, trading systems and older software.</div>
+            </div></div></div>
+          </section>
+        </figure>
+
+        <hr class="rule">
+
+        <h2>When to Choose ARM</h2>
+
+        <h3>Data Centers and Cloud</h3>
+        <p>ARM became wildly successful in data centers because <b>cost and energy matter more than anything else</b>:</p>
+        <ul>
+          <li><b>Lower power draw</b> = lower electricity bills</li>
+          <li><b>Less cooling required</b> = lower infrastructure costs</li>
+          <li><b>Comparable or better throughput per dollar</b> = better total cost of ownership</li>
+        </ul>
+        <p>ARM-based instances like AWS Graviton, Google Axion, and Microsoft Cobalt deliver the same workload for less money and improved energy efficiency.</p>
+
+        <!-- Interactive visual 3: the ARM supermarket -->
+        <figure class="viz">
+          <figcaption class="caption"><b>Watch it:</b> the supermarket runs automatically — every checkout desk serves a customer. <b>Pause</b> / <b>Play</b> control it.</figcaption>
+
+          <section class="pod arm open" data-a="armShop">
+            <button class="head" aria-expanded="true"><span class="ico">🛒</span><span class="tt"><span class="tag">ARM</span><span class="t">Lots of small helpers, tiny power bill</span><span class="s">Great when thousands of people ask at once</span></span><span class="chev">+</span></button>
+            <div class="body"><div class="inner"><div class="in">
+              <div class="ctrl">
+                <button type="button" data-act="start">▶ Play</button>
+                <button type="button" data-act="stop">⏸ Pause</button>
+              </div>
+              <p class="queue">🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂 …waiting</p>
+              <div class="desks"></div>
+              <div class="score"><div class="chip good">Customers served<b class="n">0</b></div></div>
+              <div class="meter">💡 Energy used <div class="bt"><i style="width:0"></i></div> low</div>
+              <div class="plain"><b>In plain words:</b> Like a supermarket with many cheap checkout desks: everybody is served at the same time. That is why cloud companies love ARM for websites and apps.</div>
+            </div></div></div>
+          </section>
+        </figure>
+
+        <h3>Long-Running Tasks</h3>
+        <p>For long-duration tasks — batch processing, analytics workloads, API servers running continuously — ARM shines. The key: ARM does <b>not</b> make any single query faster (remember, x64 still wins the one-thread race). What it wins is the <i>total</i>: more queries per dollar, per watt. Consider this example query, an analytics report that scans an entire table:</p>
+        <pre><code>SELECT status, COUNT(*) FROM orders GROUP BY status;</code></pre>
+        <p>No single row matters here — what matters is how many rows the database can chew through per second. On an ARM instance with more cores for the same price, this kind of scan gets split across all of them in parallel. Run it millions of times a day across thousands of instances, and that adds up to hours of computation saved and significant cost reduction.</p>
+        <p>More importantly, ARM's architecture favors <b>throughput-heavy workloads</b> where many cores work in parallel. Its design, with more cores available for the same price, handles high-concurrency server workloads exceptionally well.</p>
+
+        <hr class="rule">
+
+        <h2>Course-Work</h2>
+        <p>Try to run and understand latency p50/p99/p95 and how we can reduce it. See and check throughput, CPU utilization percentage and I/O wait.</p>
+        <ol>
+          <li><b>Can your work be split?</b> Whatever your workload is — one complex query or fifty thousand tiny ones.</li>
+          <li><b>What are you actually paying for?</b> When your database bill arrives, are you paying for <i>latency</i> (one query finishing fast) or <i>throughput</i>?</li>
+        </ol>
+
+      </article>
+
+      <footer class="article-end">
+        <div class="author-card">
+          <img class="avatar" src="../../assets/img/suchet-avatar.webp" alt="" width="200" height="200" decoding="async">
+          <div>
+            <h2>Written by Suchet Kapoor</h2>
+            <p>Backend engineer in Bangalore. I write about databases, processors and the parts of production that only show up under load.</p>
+            <div class="author-links">
+              <a href="../../about/">About</a>
+              <a href="https://github.com/suchet-kapoor" target="_blank" rel="noopener">GitHub</a>
+              <a href="mailto:suchetkapoor26@gmail.com">Email</a>
+            </div>
+          </div>
         </div>
-        <div class="fleet"></div>
-        <div class="score"><div class="chip good">Empty space<b class="w">0%</b></div><div class="chip">Convoy shipped<b class="d">0</b></div></div>
-        <div class="plain"><b>In plain words:</b> ARM splits work into small, equal jobs — so every kangaroo lands in a ready slot. Full row → convoy departs → next one hops in. Nothing wasted.</div>
-      </div></div></div>
-    </section>
 
-    <section class="pod x86 open" data-a="x86Zoo">
-      <button class="head" aria-expanded="true"><span class="ico">🦒</span><span class="tt"><span class="tag">x86</span><span class="t">Same 8 seats, but the whole zoo shows up</span><span class="s">Mice, hippos and giraffes sharing one row</span></span><span class="chev">+</span></button>
-      <div class="body"><div class="inner"><div class="in">
-        <div class="ctrl">
-          <button type="button" data-act="start">▶ Play</button>
-          <button type="button" data-act="stop">⏸ Pause</button>
-        </div>
-        <div class="fleet"></div>
-        <div class="score"><div class="chip bad">Empty space<b class="w">0%</b></div><div class="chip">Convoy shipped<b class="d">0</b></div></div>
-        <div class="plain"><b>In plain words:</b> x86 accepts jobs of any shape — powerful and flexible. But a giraffe that straddles three seats leaves holes behind, and more convoys are needed for the same work.</div>
-      </div></div></div>
-    </section>
-  </figure>
+        <a class="read-next" href="../connection-pools/">
+          <span class="kicker">Keep reading</span>
+          <strong>Connection Pools: How Big Should Your Pool Be?</strong>
+          <span class="more">Read the article →</span>
+        </a>
 
-  <hr class="rule">
+        <a class="back-link" href="../../#writing">← All writing</a>
+      </footer>
+    </div>
 
-  <h2>When to Choose x64</h2>
-
-  <h3>Single-Threaded Workloads</h3>
-  <p><b>x64 is better when we need to run a  single long  threaded tasks or operate a query which is too complex</b>. For workloads that depend heavily on a single, fast core — gaming servers,
-     one-off database transactions, or high-frequency trading, and in some cases legacy applications are examples.</p>
-  <p>So, If your task is dominated by a single thread that isn't waiting on I/O, x64 will  outperform ARM despite ARM's energy efficiency.</p>
-
-  <!-- Interactive visual 2: the single-threaded race -->
-  <figure class="viz">
-    <figcaption class="caption"><b>Watch it:</b> the race runs automatically. <b>Pause</b> freezes it mid-race, <b>Play</b> resumes from that spot.</figcaption>
-
-    <section class="pod x86 open" data-a="x86Race">
-      <button class="head" aria-expanded="true"><span class="ico">🏎️</span><span class="tt"><span class="tag">x86</span><span class="t">One job, one lane: the fast car wins</span><span class="s">Great when a task cannot be split up</span></span><span class="chev">+</span></button>
-      <div class="body"><div class="inner"><div class="in">
-        <div class="ctrl">
-          <button type="button" data-act="start">▶ Play</button>
-          <button type="button" data-act="stop">⏸ Pause</button>
-        </div>
-        <div class="lbl">x86 sports car</div><div class="track"><span id="rx">🏎️</span><em>🏁</em></div>
-        <div class="meter">⛽ Fuel used <div class="bt"><i id="fx" style="width:0"></i></div></div>
-        <div class="lbl">ARM efficient car</div><div class="track"><span id="ra">🚗</span><em>🏁</em></div>
-        <div class="meter">⛽ Fuel used <div class="bt"><i id="fa" style="width:0"></i></div></div>
-        <div class="win"></div>
-        <div class="plain"><b>In plain words:</b> For a single task nobody can share, x86 is the quicker car, but it drinks more fuel. Think games, trading systems and older software.</div>
-      </div></div></div>
-    </section>
-  </figure>
-
-  <hr class="rule">
-
-  <h2>When to Choose ARM</h2>
-
-  <h3>Data Centers and Cloud</h3>
-  <p>ARM became wildly successful in data centers because <b>cost and energy matter more than anything else</b>:</p>
-  <ul>
-    <li><b>Lower power draw</b> = lower electricity bills</li>
-    <li><b>Less cooling required</b> = lower infrastructure costs</li>
-    <li><b>Comparable or better throughput per dollar</b> = better total cost of ownership</li>
-  </ul>
-  <p>ARM-based instances like AWS Graviton, Google Axion, and Microsoft Cobalt
-    deliver the same workload for less money and improved energy efficiency.</p>
-
-  <!-- Interactive visual 3: the ARM supermarket -->
-  <figure class="viz">
-    <figcaption class="caption"><b>Watch it:</b> the supermarket runs automatically — every checkout desk serves a customer. <b>Pause</b> / <b>Play</b> control it.</figcaption>
-
-    <section class="pod arm open" data-a="armShop">
-      <button class="head" aria-expanded="true"><span class="ico">🛒</span><span class="tt"><span class="tag">ARM</span><span class="t">Lots of small helpers, tiny power bill</span><span class="s">Great when thousands of people ask at once</span></span><span class="chev">+</span></button>
-      <div class="body"><div class="inner"><div class="in">
-        <div class="ctrl">
-          <button type="button" data-act="start">▶ Play</button>
-          <button type="button" data-act="stop">⏸ Pause</button>
-        </div>
-        <p class="queue">🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂 …waiting</p>
-        <div class="desks"></div>
-        <div class="score"><div class="chip good">Customers served<b class="n">0</b></div></div>
-        <div class="meter">💡 Energy used <div class="bt"><i style="width:0"></i></div> low</div>
-        <div class="plain"><b>In plain words:</b> Like a supermarket with many cheap checkout desks: everybody is served at the same time. That is why cloud companies love ARM for websites and apps.</div>
-      </div></div></div>
-    </section>
-  </figure>
-
-  <h3>Long-Running Tasks</h3>
-  <p>For long-duration tasks — batch processing, analytics workloads, API servers running continuously — ARM shines. The key: ARM does <b>not</b> make any single query faster (remember, x64 still wins the one-thread race). What it wins is the <i>total</i>: more queries per dollar, per watt. Consider this example query, an analytics report that scans an entire table:</p>
-  <pre><code>SELECT status, COUNT(*) FROM orders GROUP BY status;</code></pre>
-  <p>No single row matters here — what matters is how many rows the database can chew through per second. On an ARM instance with more cores for the same price, this kind of scan gets split across all of them in parallel. Run it millions of times a day across thousands of instances, and that adds up to hours of computation saved and significant cost reduction.</p>
-  <p>More importantly, ARM's architecture favors <b>throughput-heavy workloads</b> where many cores work in parallel. Its design, with more cores available for the same price, handles high-concurrency server workloads exceptionally well.</p>
- 
-  <hr class="rule">
-
-  <h2>Course-Work</h2>
-  <p>Try to run and understand Latency  p50/p99/p95 how we can reduce it. 
-    See and check Throughput , CPU utilization percentage and  I/O wait.</p>
-  <ol>
-    <li><b>Can your work be split?</b> Whatever your workload is — one complex query or fifty thousand
-       tiny ones</li>
-    <li><b>What are you actually paying for?</b> When your database bill arrives, 
-      are you paying for <i>latency</i> (one query finishing fast) or <i>throughput</i>
-      </li>
-  </ol>
-
-  <a class="back" href="../../">← Back to the blog</a>
-</article>
+    <aside class="article-aside">
+      <nav class="toc" aria-label="On this page">
+        <p class="toc-title">On this page</p>
+        <ol></ol>
+      </nav>
+    </aside>
+  </div>
 </main>
 
 <footer class="site-foot">
-  <span>© 2026 Suchet Kapoor</span>
-  <span><a href="../../">More posts</a></span>
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="../../">
+        <span class="brand-mark" aria-hidden="true">SK</span>
+        <span class="brand-text">Suchet <span class="brand-surname">Kapoor</span><small>Backend &amp; systems</small></span>
+      </a>
+      <p>Backend engineer writing about the machinery underneath — databases, processors and the cloud.</p>
+    </div>
+    <div class="foot-col">
+      <h2>Explore</h2>
+      <a href="../../#writing">Writing</a>
+      <a href="../../about/">About</a>
+      <a href="mailto:suchetkapoor26@gmail.com">Email</a>
+    </div>
+    <div class="foot-col">
+      <h2>Elsewhere</h2>
+      <a href="https://github.com/suchet-kapoor" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://linkedin.com/in/suchetkapoor29/" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© <span data-year>2026</span> Suchet Kapoor</span>
+    <span>Built with plain HTML, CSS &amp; JS — no build step</span>
+  </div>
 </footer>
 
 <script>

@@ -28,7 +28,7 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
-          site_title: Suchet's Website
+          site_title: Suchet Kapoor
           base_path: ''
 
       - name: Upload site (static, served from repo root)
