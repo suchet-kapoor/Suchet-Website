@@ -9,7 +9,7 @@ Plain HTML, CSS and a little vanilla JavaScript. No framework, no bundler, no ex
 | Path | What it is |
 | --- | --- |
 | `/` | Intro, latest writing, about preview, contact |
-| `/about/` | Experience, highlights, stack |
+| `/about/` | Experience, highlights, projects, stack |
 | `/articles/arm-vs-x86/` | Interactive visual explainer: ARM vs x64 |
 | `/articles/connection-pools/` | Database connection-pool sizing |
 
@@ -28,6 +28,7 @@ Then open <http://localhost:4173>. Any static file server works.
 - `assets/img/` — the illustrated portrait (About page) and avatar (hero panel and article bylines).
 - Dark mode is the default; the header toggle stores the choice in `localStorage`.
 - Article pages use the `.prose` wrapper. Headings are auto-linked into the “On this page” table of contents.
+- The featured project card lives in `about/index.html`; its styles are the `.project-card` rules in `assets/css/site.css`.
 - The interactive article illustrations keep their own scoped CSS and script inside `articles/arm-vs-x86/index.html`.
 
 ## Deploy
