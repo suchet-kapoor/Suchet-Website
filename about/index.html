@@ -126,8 +126,37 @@
     </div>
   </section>
 
+  <section class="section" id="projects">
+    <p class="label">04 / Projects</p>
+    <h2 class="section-title">Things I've built</h2>
+    <div class="project-card">
+      <div class="project-head">
+        <div>
+          <p class="project-kicker">Side project · Backend</p>
+          <h3>URL Shortener API</h3>
+        </div>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/suchet-kapoor/Url-Shortner/tree/main" target="_blank" rel="noopener">View on GitHub ↗</a>
+      </div>
+      <p>A URL shortening service built the way I like to build things: small on the surface, careful underneath. Give it a long link and it mints a short code, stores the mapping, and sends visitors straight to the original with a 302 redirect.</p>
+      <ul class="project-points">
+        <li><b>Two-endpoint REST API</b> — <code>POST /url/code</code> creates a short link; <code>GET /url/{code}</code> resolves and redirects.</li>
+        <li><b>Collision-safe codes</b> — seven random characters from a 62-character alphabet using <code>SecureRandom</code>, with a unique database constraint and retry-on-duplicate writes.</li>
+        <li><b>Defensive validation</b> — HTTP/HTTPS and host checks on every URL, plus a global exception handler that maps bad input to 400 and unknown codes to 404.</li>
+        <li><b>Real persistence</b> — MySQL through Spring Data JPA, with a clean controller → service → repository split.</li>
+      </ul>
+      <div class="chips">
+        <span class="chip">Java 21</span>
+        <span class="chip">Spring Boot</span>
+        <span class="chip">Spring MVC</span>
+        <span class="chip">Spring Data JPA</span>
+        <span class="chip">MySQL</span>
+        <span class="chip">Maven</span>
+      </div>
+    </div>
+  </section>
+
   <section class="section">
-    <p class="label">04 / Stack</p>
+    <p class="label">05 / Stack</p>
     <h2 class="section-title">What I work with</h2>
     <div class="skill-grid">
       <div class="skill"><b>Backend</b><p>Java 21, Spring Boot, Spring MVC, REST APIs, OData, microservices, JPA/Hibernate, design patterns</p></div>
@@ -140,7 +169,7 @@
   </section>
 
   <section class="section">
-    <p class="label">05 / Contact</p>
+    <p class="label">06 / Contact</p>
     <div class="cta">
       <div>
         <h2>Say hi.</h2>
